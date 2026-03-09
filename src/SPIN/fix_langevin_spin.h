@@ -44,7 +44,7 @@ class FixLangevinSpin : public Fix {
   double temp;          // spin bath temperature
   double D, sigma;      // bath intensity var.
   double gil_factor;    // gilbert's prefactor
-  double energy_vec[2]; // D and sigma
+  double energy_vec[3]; // D and sigma
 
   int nlevels_respa;
   class RanMars *random;
