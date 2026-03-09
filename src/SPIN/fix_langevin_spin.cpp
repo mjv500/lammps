@@ -46,7 +46,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), random(nullptr), energy_vec{0.0, 0.0}
+  Fix(lmp, narg, arg), random(nullptr), energy_vec{0.0, 0.0, 0.0}
 {
   if (narg != 6) error->all(FLERR,"Illegal langevin/spin command");
 
@@ -162,6 +162,7 @@ void FixLangevinSpin::add_temperature(double spi[3], double fmi[3])
   double kb = force->boltz;             // eV/K
 
   energy_vec[1] += 2*alpha_t*kb*temp*(spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+  energy_vec[2] += 2*alpha_t*kb*temp*(rx*fmi[0] + ry*fmi[1] + rz*fmi[2]);
 
   // adding the random field
 
@@ -192,10 +193,11 @@ void FixLangevinSpin::compute_single_langevin(int i, double spi[3], double fmi[3
 
 double FixLangevinSpin::compute_vector(int n)
 {
-  double energy_all[2];
-  MPI_Allreduce(energy_vec, energy_all, 2, MPI_DOUBLE, MPI_SUM, world);
+  double energy_all[3];
+  MPI_Allreduce(energy_vec, energy_all, 3, MPI_DOUBLE, MPI_SUM, world);
   energy_all[0] /= output->thermo_every;
   energy_all[1] /= output->thermo_every;
+  energy_all[2] /= output->thermo_every;
 
   if (n > 2) return 0.0;
   energy_vec[n] = 0;
