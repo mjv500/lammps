@@ -70,7 +70,7 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
 
   if (temp < 0.0) {
     error->all(FLERR,"Illegal langevin/spin command");
-  } else if (temp == 0.0) {
+  } else if (temp == 0.0 && alpha_t == 0.0) {
     temp_flag = 0;
   } else {
     temp_flag = 1;
