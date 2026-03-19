@@ -141,15 +141,22 @@ void FixLangevinSpin::add_tdamping(double spi[3], double fmi[3])
   double cpy = fmi[2]*spi[0] - fmi[0]*spi[2];
   double cpz = fmi[0]*spi[1] - fmi[1]*spi[0];
   double hbar = force->hplanck/MY_2PI;
-  // adding the transverse damping
-
-  fmi[0] -= alpha_t*cpx;
-  fmi[1] -= alpha_t*cpy;
-  fmi[2] -= alpha_t*cpz;
 
   // energy_vec[0] includes cpx,y,z, calculated from the initial input fmi, with the bare "omega" = dH/ds
   // this does not include teh damping alpha term just above!
   energy_vec[0] -= hbar*(alpha_t*cpx*cpx + alpha_t*cpy*cpy + alpha_t*cpz*cpz);
+
+  // adding the transverse damping
+  fmi[0] -= alpha_t*cpx;
+  fmi[1] -= alpha_t*cpy;
+  fmi[2] -= alpha_t*cpz;
+
+
+  // trial change with cp vector including the damping term
+  cpx = fmi[1]*spi[2] - fmi[2]*spi[1];
+  cpy = fmi[2]*spi[0] - fmi[0]*spi[2];
+  cpz = fmi[0]*spi[1] - fmi[1]*spi[0];
+  energy_vec[2] -= hbar*(alpha_t*cpx*cpx + alpha_t*cpy*cpy + alpha_t*cpz*cpz);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -166,7 +173,7 @@ void FixLangevinSpin::add_temperature(double spi[3], double fmi[3])
   // note that energy vecs here are at the beginning of the call, so fmi has not been modified.
   // fmi contains the damping factor from the previous subroutine, but not the thermostat yet.
   energy_vec[1] += 2*alpha_t*kb*temp*(spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-  energy_vec[2] += 2*alpha_t*kb*temp*(rx*fmi[0] + ry*fmi[1] + rz*fmi[2]);
+  
 
   // adding the random field
 
