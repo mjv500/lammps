@@ -147,6 +147,8 @@ void FixLangevinSpin::add_tdamping(double spi[3], double fmi[3])
   fmi[1] -= alpha_t*cpy;
   fmi[2] -= alpha_t*cpz;
 
+  // energy_vec[0] includes cpx,y,z, calculated from the initial input fmi, with the bare "omega" = dH/ds
+  // this does not include teh damping alpha term just above!
   energy_vec[0] -= hbar*(alpha_t*cpx*cpx + alpha_t*cpy*cpy + alpha_t*cpz*cpz);
 }
 
@@ -161,6 +163,8 @@ void FixLangevinSpin::add_temperature(double spi[3], double fmi[3])
   double hbar = force->hplanck/MY_2PI;
   double kb = force->boltz;             // eV/K
 
+  // note that energy vecs here are at the beginning of the call, so fmi has not been modified.
+  // fmi contains the damping factor from the previous subroutine, but not the thermostat yet.
   energy_vec[1] += 2*alpha_t*kb*temp*(spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
   energy_vec[2] += 2*alpha_t*kb*temp*(rx*fmi[0] + ry*fmi[1] + rz*fmi[2]);
 
@@ -195,6 +199,8 @@ double FixLangevinSpin::compute_vector(int n)
 {
   double energy_all[3];
   MPI_Allreduce(energy_vec, energy_all, 3, MPI_DOUBLE, MPI_SUM, world);
+  // this averages over all time steps between the thermo_every outputs.
+  // energy_all is still in units of energy (metal units usually)
   energy_all[0] /= output->thermo_every;
   energy_all[1] /= output->thermo_every;
   energy_all[2] /= output->thermo_every;
